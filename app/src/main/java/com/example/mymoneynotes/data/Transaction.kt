@@ -1,17 +1,23 @@
 package com.example.mymoneynotes.data
 
-import java.util.UUID
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import java.time.LocalDate
 
 enum class TransactionType { INCOME, EXPENSE }
 
 enum class Category {
-    FOOD, TRANSPORT, SHOPPING, SALARY, BILLS, OTHER
+    FOOD, TRANSPORT, SHOPPING, SALARY, BILLS, ENTERTAINMENT, OTHER
 }
 
+@Entity(tableName = "transactions")
+@TypeConverters(Converters::class)
 data class Transaction(
-    val id: Int = UUID.randomUUID().hashCode(),
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0, // Keep default for autoGenerate = true ID
     val type: TransactionType,
     val category: Category,
     val amount: Double,
-    val date: String // Format: "YYYY-MM-DD"
+    val date: LocalDate
 )

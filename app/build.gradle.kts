@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.ksp)
 }
 
 android {
@@ -30,6 +31,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -51,6 +53,10 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.navigation.compose)
+    val roomVersion = "2.6.1" // Or your version alias from libs.versions.toml
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion") // For Flow/suspend support
+    ksp("androidx.room:room-compiler:$roomVersion") // Must use ksp, NOT implementation or
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -60,5 +66,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation ("androidx.compose.material3:material3:1.1.2")
-    /*implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")*/
+    val vicoVersion="1.14.0"
+    implementation("com.patrykandpatrick.vico:compose-m3:$vicoVersion")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
