@@ -1,62 +1,85 @@
-package com.example.mymoneynotes.ui.theme.components
+package com.example.mymoneynotes.ui.theme.components // Ensure correct package
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons // Import Icons
+import androidx.compose.material.icons.filled.Delete // Import Delete Icon
+import androidx.compose.material.icons.filled.Edit // Import Edit Icon
+import androidx.compose.material3.* // Import IconButton, Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.mymoneynotes.R
 import com.example.mymoneynotes.data.Transaction
 import com.example.mymoneynotes.data.TransactionType
-import java.text.NumberFormat // For currency formatting
+import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Locale // For currency locale
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TransactionItem(transaction: Transaction) {
-    // Remember formatter for efficiency
+fun TransactionItem(
+    transaction: Transaction,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) }
-    val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT) } // Short date format
+    val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp), // Add horizontal padding
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Add subtle elevation
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth() // Ensure row takes full width
+                .padding(horizontal = 16.dp, vertical = 8.dp), // Adjust padding
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween // Push items apart
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            // Info Column (Category, Date, Amount)
+            Column(modifier = Modifier.weight(1f, fill = false)) { // Don't let it expand infinitely
                 Text(
-                    text = transaction.category.name, // Consider stringResource if translated
+                    text = transaction.category.name,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = dateFormatter.format(transaction.date), // Format LocalDate
+                    text = dateFormatter.format(transaction.date),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant // Subtler color
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "${if (transaction.type == TransactionType.INCOME) "+" else "-"} ${currencyFormatter.format(transaction.amount)}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (transaction.type == TransactionType.INCOME) Color(0xFF18A558) else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp) // Add some space
                 )
             }
-            Text(
-                // Format amount based on type and locale
-                text = "${if (transaction.type == TransactionType.INCOME) "+" else "-"} ${currencyFormatter.format(transaction.amount)}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (transaction.type == TransactionType.INCOME) Color(0xFF18A558) else MaterialTheme.colorScheme.error // Use theme error color or custom green
-            )
+
+            // Action Buttons Row
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onEditClick) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.edit_transaction) // Add string res
+                    )
+                }
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.delete_transaction), // Add string res
+                        tint = MaterialTheme.colorScheme.error // Make delete icon red
+                    )
+                }
+            }
         }
     }
 }

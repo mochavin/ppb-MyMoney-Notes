@@ -1,32 +1,27 @@
 <resources>
-    <string name="app_name">MyMoney Notes</string>
-
-    <!-- Add Transaction Dialog -->
-    <string name="add_new_transaction">Add New Transaction</string>
-    <string name="transaction_type">Transaction Type</string>
-    <string name="income">Income</string>
-    <string name="expense">Expense</string>
-    <string name="select_category">Select Category</string>
-    <string name="open_category_dropdown">Open category dropdown</string>
-    <string name="amount">Amount</string>
-    <string name="enter_valid_amount">Enter a valid amount</string>
-    <string name="select_date">Select Date</string>
-    <string name="save">Save</string>
-    <string name="cancel">Cancel</string>
-
-    <!-- Transaction Screen -->
-    <string name="transaction_history">Transaction History</string>
-    <string name="no_transactions_yet">No transactions yet. Tap \'+\' to add one!</string>
-
-    <!-- Chart Screen -->
-    <string name="chart_screen_title">Spending Summary</string>
-    <string name="no_data_for_chart">No data available for chart.</string>
-
-    <!-- Bottom Navigation -->
+    <string name="app_name">MyMoneyNotes</string>
     <string name="bottom_nav_transactions">Transactions</string>
     <string name="bottom_nav_charts">Charts</string>
-
-    <!-- Content Descriptions -->
     <string name="add_transaction_fab">Add Transaction</string>
-
+    <string name="add_new_transaction">Add New Transaction</string>
+    <string name="edit_transaction">Edit Transaction</string>
+    <string name="transaction_type">Transaction Type</string>
+    <string name="select_category">Category</string>
+    <string name="open_category_dropdown">Open category dropdown</string>
+    <string name="select_date">Date</string>
+    <string name="amount">Amount</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="update">Update</string>
+    <string name="delete">Delete</string>
+    <string name="ok">OK</string>
+    <string name="transaction_history">Transaction History</string>
+    <string name="no_transactions_yet">No transactions recorded yet. Tap the + button to add one!</string>
+    <string name="chart_screen_title">Expense Summary by Category</string>
+    <string name="no_data_for_chart">No expense data available to display chart.</string>
+    <string name="error_invalid_amount">Please enter a valid positive amount.</string>
+    <string name="confirm_deletion_title">Confirm Deletion</string>
+    <string name="confirm_deletion_message">Are you sure you want to permanently delete this transaction?</string>
+    <string name="delete_transaction">Delete Transaction</string>
+    <!-- Add other strings as needed -->
 </resources>
