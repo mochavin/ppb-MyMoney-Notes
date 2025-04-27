@@ -23,5 +23,4 @@
     <string name="confirm_deletion_title">Confirm Deletion</string>
     <string name="confirm_deletion_message">Are you sure you want to permanently delete this transaction?</string>
     <string name="delete_transaction">Delete Transaction</string>
-    <!-- Add other strings as needed -->
 </resources>
