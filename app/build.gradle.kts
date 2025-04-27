@@ -65,6 +65,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation (libs.androidx.lifecycle.viewmodel.compose)
     implementation (libs.material3)
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation(libs.mpandroidchart)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
