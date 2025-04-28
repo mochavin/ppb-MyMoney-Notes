@@ -1,3 +1,4 @@
+// FILE: app/src/main/java/com/example/mymoneynotes/ui/theme/components/AddTransactionDialog.kt
 package com.example.mymoneynotes.ui.components
 
 import android.os.Build
@@ -156,14 +157,20 @@ fun AddTransactionDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
-                        amount = it
+                        // Allow only digits and a single decimal point
+                        val filtered = it.filter { char -> char.isDigit() || char == '.' }
+                        // Ensure only one decimal point
+                        if (filtered.count { it == '.' } <= 1) {
+                            amount = filtered
+                        }
                         errorMessage = null // Clear error on change
                     },
                     label = { Text(stringResource(R.string.amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage != null,
-                    prefix = { Text("Rp. ") } // Basic currency prefix
+                    placeholder = { Text("0.00") } // Placeholder instead of prefix
+                    // prefix = { Text("Rp. ") } // Basic currency prefix - REMOVED
                 )
 
                 errorMessage?.let {
@@ -191,7 +198,8 @@ fun AddTransactionDialog(
                         )
                         onDismiss()
                     } else {
-
+                        // Show error if amount is invalid
+                        errorMessage = "Please enter a valid positive amount."
                     }
                 }
             ) {

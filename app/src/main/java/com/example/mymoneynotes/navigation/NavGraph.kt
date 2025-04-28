@@ -5,8 +5,9 @@ import androidx.annotation.RequiresApi
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.mymoneynotes.data.Transaction // Import Transaction
+import com.example.mymoneynotes.data.Transaction
 import com.example.mymoneynotes.ui.theme.screens.ChartScreen
+import com.example.mymoneynotes.ui.theme.screens.IncomeChartScreen
 import com.example.mymoneynotes.ui.theme.screens.TransactionScreen
 import com.example.mymoneynotes.viewmodel.TransactionViewModel
 
@@ -24,7 +25,10 @@ fun NavGraphBuilder.mainGraph(
             onDeleteClick = onDeleteRequest
         )
     }
-    composable(BottomNavItem.Charts.route) {
-        ChartScreen(viewModel) // Chart screen doesn't need these callbacks
+    composable(BottomNavItem.ExpenseCharts.route) {
+        ChartScreen(viewModel)
+    }
+    composable(BottomNavItem.IncomeCharts.route) {
+        IncomeChartScreen(viewModel)
     }
 }

@@ -22,12 +22,10 @@ import com.example.mymoneynotes.data.Transaction
 import com.example.mymoneynotes.data.TransactionType
 import com.example.mymoneynotes.viewmodel.TransactionViewModel
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTransactionDialog(
@@ -44,6 +42,7 @@ fun EditTransactionDialog(
     var showCategoryDropdown by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current // Get context for string resources
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -152,14 +151,20 @@ fun EditTransactionDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
-                        amount = it
-                        errorMessage = null
+                        // Allow only digits and a single decimal point
+                        val filtered = it.filter { char -> char.isDigit() || char == '.' }
+                        // Ensure only one decimal point
+                        if (filtered.count { it == '.' } <= 1) {
+                            amount = filtered
+                        }
+                        errorMessage = null // Clear error on change
                     },
                     label = { Text(stringResource(R.string.amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage != null,
-                    prefix = { Text("Rp. ") }
+                    placeholder = { Text("0.00") } // Placeholder instead of prefix
+                    // prefix = { Text("Rp. ") } // REMOVED prefix
                 )
                 errorMessage?.let {
                     Text(
@@ -187,6 +192,8 @@ fun EditTransactionDialog(
                         viewModel.updateTransaction(updatedTransaction) // Call UPDATE
                         onDismiss()
                     } else {
+                        // Show error if amount is invalid
+                        errorMessage = context.getString(R.string.error_invalid_amount)
                     }
                 }
             ) {

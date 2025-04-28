@@ -1,7 +1,5 @@
 package com.example.mymoneynotes.ui.theme.components
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,7 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,22 +24,25 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TransactionItem(
     transaction: Transaction,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier // Make modifier parameter optional with default
+    modifier: Modifier = Modifier
 ) {
-    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) }
+
+    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("id", "ID")) }
+    currencyFormatter.maximumFractionDigits = 0
+    currencyFormatter.minimumFractionDigits = 0
+
     val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT) }
 
-    // Define consistent colors for transaction types
+
     val amountColor = remember(transaction.type) {
         when (transaction.type) {
-            TransactionType.INCOME -> Color(0xFF18A558) // Green for income
-            TransactionType.EXPENSE -> Color(0xFFE53935) // Red for expense
+            TransactionType.INCOME -> Color(0xFF18A558)
+            TransactionType.EXPENSE -> Color(0xFFE53935)
         }
     }
 
@@ -66,13 +66,13 @@ fun TransactionItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Left side: Transaction info
+
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
             ) {
-                // Category with overflow handling
+
                 Text(
                     text = transaction.category.name,
                     style = MaterialTheme.typography.titleMedium,
@@ -81,7 +81,7 @@ fun TransactionItem(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Date with subtle styling
+
                 Text(
                     text = dateFormatter.format(transaction.date),
                     style = MaterialTheme.typography.bodySmall,
@@ -89,7 +89,7 @@ fun TransactionItem(
                     modifier = Modifier.padding(top = 2.dp)
                 )
 
-                // Amount with proper color coding
+
                 Text(
                     text = formattedAmount,
                     style = MaterialTheme.typography.titleMedium,
@@ -99,12 +99,12 @@ fun TransactionItem(
                 )
             }
 
-            // Right side: Action buttons with improved touch targets
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Edit button with subtle background
+
                 FilledTonalIconButton(
                     onClick = onEditClick,
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
@@ -118,7 +118,7 @@ fun TransactionItem(
                     )
                 }
 
-                // Delete button with error styling
+
                 FilledTonalIconButton(
                     onClick = onDeleteClick,
                     colors = IconButtonDefaults.filledTonalIconButtonColors(

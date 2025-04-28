@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">MyMoneyNotes</string>
     <string name="bottom_nav_transactions">Transactions</string>
-    <string name="bottom_nav_charts">Charts</string>
+    <string name="bottom_nav_expense_charts">Expenses</string>
+    <string name="bottom_nav_income_charts">Income</string>
     <string name="add_transaction_fab">Add Transaction</string>
     <string name="add_new_transaction">Add New Transaction</string>
     <string name="edit_transaction">Edit Transaction</string>
@@ -16,11 +17,45 @@
     <string name="delete">Delete</string>
     <string name="ok">OK</string>
     <string name="transaction_history">Transaction History</string>
-    <string name="no_transactions_yet">No transactions recorded yet. Tap the + button to add one!</string>
-    <string name="chart_screen_title">Expense Summary by Category</string>
-    <string name="no_data_for_chart">No expense data available to display chart.</string>
+    <string name="no_transactions_yet">No transactions yet</string> <!-- Simplified -->
+    <string name="add_transactions_prompt">Tap the + button to add your first transaction!</string>
+
+    <!-- Chart Screen (Expenses) -->
+    <string name="chart_screen_expense_title">Expense Summary</string>
+    <string name="no_expense_data_for_chart">No expense data for chart</string>
+    <string name="add_expenses_to_see_chart">Add expenses to see breakdown</string>
+    <string name="expense_breakdown">Expense Breakdown</string>
+    <string name="expenses_center_text">Expenses</string>
+    <string name="total_expenses_stat">Total Expenses</string>
+    <string name="top_category_stat">Top Category</string>
+
+    <!-- Chart Screen (Income) -->
+    <string name="chart_screen_income_title">Income Summary</string>
+    <string name="no_income_data_for_chart">No income data for chart</string>
+    <string name="add_income_to_see_chart">Add income to see breakdown</string>
+    <string name="income_breakdown">Income Breakdown</string>
+    <string name="income_center_text">Income</string>
+    <string name="total_income_stat">Total Income</string>
+    <string name="top_income_source_stat">Top Source</string>
+
+    <!-- Input Validation -->
     <string name="error_invalid_amount">Please enter a valid positive amount.</string>
+
+    <!-- Deletion Confirmation -->
     <string name="confirm_deletion_title">Confirm Deletion</string>
     <string name="confirm_deletion_message">Are you sure you want to permanently delete this transaction?</string>
     <string name="delete_transaction">Delete Transaction</string>
+
+    <!-- Transaction Summary -->
+    <string name="net_total_summary">Net Total</string>
+    <string name="total_income_summary">Income</string>
+    <string name="total_expense_summary">Expense</string>
+    <string name="transactions_count_summary">transactions</string>
+
+    <!-- Date Headers -->
+    <string name="date_header_today">Today</string>
+    <string name="date_header_yesterday">Yesterday</string>
+    <string name="date_header_tomorrow">Tomorrow</string>
+    <string name="date_header_days_ago">%d days ago</string> <!-- Added (Example for potential future use) -->
+
 </resources>

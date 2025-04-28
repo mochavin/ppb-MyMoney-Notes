@@ -14,17 +14,31 @@ import kotlinx.coroutines.launch
 
 class TransactionViewModel(private val repository: TransactionRepository) : ViewModel() {
 
+    // Timeout duration for StateFlow sharing
+    private val StopTimeoutMillis: Long = 5000
+
     val transactions: StateFlow<List<Transaction>> = repository.allTransactions
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
+            // Use Lazily: starts when first collector appears, never stops
+            started = SharingStarted.Lazily,
             initialValue = emptyList()
         )
 
     val expenseSummary: StateFlow<Map<Category, Double>> = repository.expenseSummary
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
+            // Use Lazily: starts when first collector appears, never stops
+            started = SharingStarted.Lazily,
+            initialValue = emptyMap()
+        )
+
+    // Add state flow for income summary
+    val incomeSummary: StateFlow<Map<Category, Double>> = repository.incomeSummary
+        .stateIn(
+            scope = viewModelScope,
+            // Use Lazily: starts when first collector appears, never stops
+            started = SharingStarted.Lazily,
             initialValue = emptyMap()
         )
 
@@ -59,5 +73,4 @@ class TransactionViewModelFactory(private val repository: TransactionRepository)
         // Provide a more informative error message
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
-
 }
