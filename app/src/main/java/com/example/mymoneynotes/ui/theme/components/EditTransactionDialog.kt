@@ -2,19 +2,20 @@ package com.example.mymoneynotes.ui.theme.components
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.mymoneynotes.R
 import com.example.mymoneynotes.data.Category
@@ -30,19 +31,33 @@ import java.time.format.FormatStyle
 @Composable
 fun EditTransactionDialog(
     viewModel: TransactionViewModel,
-    initialTransaction: Transaction, // The transaction to edit
+    initialTransaction: Transaction,
     onDismiss: () -> Unit
 ) {
-    // Initialize state FROM the initialTransaction
     var selectedType by remember { mutableStateOf(initialTransaction.type) }
-    var selectedCategory by remember { mutableStateOf(initialTransaction.category) }
-    var amount by remember { mutableStateOf(initialTransaction.amount.toString()) } // Amount needs conversion
+    var availableCategories by remember { mutableStateOf(Category.getCategoriesForType(selectedType)) }
+    // Ensure initial category is valid for the initial type
+    var selectedCategory by remember {
+        mutableStateOf(
+            if (initialTransaction.category in availableCategories) initialTransaction.category
+            else Category.getDefaultCategory(selectedType)
+        )
+    }
+    var amount by remember { mutableStateOf(initialTransaction.amount.toString()) }
     var selectedDate by remember { mutableStateOf(initialTransaction.date) }
-
     var showCategoryDropdown by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current // Get context for string resources
+    val context = LocalContext.current
+
+    // Update available categories and reset selection when type changes
+    LaunchedEffect(selectedType) {
+        availableCategories = Category.getCategoriesForType(selectedType)
+        // Ensure the current selection is valid, otherwise reset to default
+        if (selectedCategory !in availableCategories) {
+            selectedCategory = Category.getDefaultCategory(selectedType)
+        }
+    }
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -58,7 +73,7 @@ fun EditTransactionDialog(
                         selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     showDatePicker = false
-                }) { Text(stringResource(R.string.ok)) } // OK instead of Save
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
                 Button(onClick = { showDatePicker = false }) {
@@ -72,65 +87,81 @@ fun EditTransactionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.edit_transaction)) }, // Update Title
+        shape = RoundedCornerShape(16.dp),
+        title = {
+            Text(
+                stringResource(R.string.edit_transaction), // Update Title
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Increased spacing
             ) {
-                // --- Transaction Type --- (Same as Add)
-                Text(stringResource(R.string.transaction_type), style = MaterialTheme.typography.labelMedium)
+                // --- Transaction Type Selection ---
+                Text(stringResource(R.string.transaction_type), style = MaterialTheme.typography.labelLarge)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TransactionType.entries.forEach { type ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { selectedType = type }
-                        ) {
-                            RadioButton(
-                                selected = selectedType == type,
-                                onClick = { selectedType = type }
+                        FilterChip(
+                            selected = selectedType == type,
+                            onClick = { selectedType = type },
+                            label = { Text(type.name) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                if (selectedType == type) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            ),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Text(text = type.name)
+                        )
+                    }
+                }
+
+                // --- Category Selection (ExposedDropdownMenuBox) ---
+                ExposedDropdownMenuBox(
+                    expanded = showCategoryDropdown,
+                    onExpandedChange = { showCategoryDropdown = !showCategoryDropdown },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory.name,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.select_category)) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoryDropdown)
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = showCategoryDropdown,
+                        onDismissRequest = { showCategoryDropdown = false }
+                    ) {
+                        availableCategories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = {
+                                    selectedCategory = category
+                                    showCategoryDropdown = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
 
-                // --- Category Selection --- (Same as Add)
-                OutlinedTextField(
-                    value = selectedCategory.name,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.select_category)) },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = stringResource(R.string.open_category_dropdown),
-                            Modifier.clickable { showCategoryDropdown = true }
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                DropdownMenu(
-                    expanded = showCategoryDropdown,
-                    onDismissRequest = { showCategoryDropdown = false }
-                ) {
-                    Category.entries.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name) },
-                            onClick = {
-                                selectedCategory = category
-                                showCategoryDropdown = false
-                            }
-                        )
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-
-                // --- Date Selection --- (Same as Add)
+                // --- Date Selection ---
                 OutlinedTextField(
                     value = dateFormatter.format(selectedDate),
                     onValueChange = {},
@@ -143,28 +174,27 @@ fun EditTransactionDialog(
                             Modifier.clickable { showDatePicker = true }
                         )
                     },
-                    modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true }
                 )
-                Spacer(Modifier.height(8.dp))
 
-                // --- Amount Input --- (Same as Add)
+                // --- Amount Input ---
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
-                        // Allow only digits and a single decimal point
                         val filtered = it.filter { char -> char.isDigit() || char == '.' }
-                        // Ensure only one decimal point
                         if (filtered.count { it == '.' } <= 1) {
                             amount = filtered
                         }
-                        errorMessage = null // Clear error on change
+                        errorMessage = null
                     },
                     label = { Text(stringResource(R.string.amount)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage != null,
-                    placeholder = { Text("0.00") } // Placeholder instead of prefix
-                    // prefix = { Text("Rp. ") } // REMOVED prefix
+                    placeholder = { Text("0.00") },
+                    singleLine = true
                 )
                 errorMessage?.let {
                     Text(
@@ -181,18 +211,15 @@ fun EditTransactionDialog(
                 onClick = {
                     val amountValue = amount.toDoubleOrNull()
                     if (amountValue != null && amountValue > 0) {
-                        // Create UPDATED transaction object, keeping the ORIGINAL ID
                         val updatedTransaction = initialTransaction.copy(
                             type = selectedType,
-                            category = selectedCategory,
+                            category = selectedCategory, // Use the selected category
                             amount = amountValue,
                             date = selectedDate
-                            // id = initialTransaction.id // copy() preserves the ID
                         )
                         viewModel.updateTransaction(updatedTransaction) // Call UPDATE
                         onDismiss()
                     } else {
-                        // Show error if amount is invalid
                         errorMessage = context.getString(R.string.error_invalid_amount)
                     }
                 }
@@ -201,7 +228,7 @@ fun EditTransactionDialog(
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.cancel))
             }
         }

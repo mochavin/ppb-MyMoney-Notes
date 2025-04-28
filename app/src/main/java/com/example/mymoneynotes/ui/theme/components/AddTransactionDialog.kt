@@ -1,24 +1,23 @@
-// FILE: app/src/main/java/com/example/mymoneynotes/ui/theme/components/AddTransactionDialog.kt
-package com.example.mymoneynotes.ui.components
+package com.example.mymoneynotes.ui.theme.components 
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.* // Import Material 3 DatePicker
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.mymoneynotes.R // Import R class
+import com.example.mymoneynotes.R
 import com.example.mymoneynotes.data.Category
 import com.example.mymoneynotes.data.Transaction
 import com.example.mymoneynotes.data.TransactionType
@@ -36,19 +35,30 @@ fun AddTransactionDialog(
     viewModel: TransactionViewModel,
     onDismiss: () -> Unit
 ) {
-    var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) } // Default to expense
-    var selectedCategory by remember { mutableStateOf(Category.FOOD) }
+    var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var availableCategories by remember { mutableStateOf(Category.getCategoriesForType(selectedType)) }
+    var selectedCategory by remember { mutableStateOf(Category.getDefaultCategory(selectedType)) }
     var amount by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) } // Use LocalDate state
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showCategoryDropdown by remember { mutableStateOf(false) }
-    var showDatePicker by remember { mutableStateOf(false) } // State for date picker dialog
+    var showDatePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    // Update available categories and reset selection when type changes
+    LaunchedEffect(selectedType) {
+        availableCategories = Category.getCategoriesForType(selectedType)
+        // Ensure the current selection is valid, otherwise reset to default
+        if (selectedCategory !in availableCategories) {
+            selectedCategory = Category.getDefaultCategory(selectedType)
+        }
+        // OR always reset to default when type changes:
+        // selectedCategory = Category.getDefaultCategory(selectedType)
+    }
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
-
-    // Date Formatter
     val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
 
     if (showDatePicker) {
@@ -60,7 +70,7 @@ fun AddTransactionDialog(
                         selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
                     }
                     showDatePicker = false
-                }) { Text(stringResource(R.string.save)) }
+                }) { Text(stringResource(R.string.ok)) } // Use OK for DatePicker confirm
             },
             dismissButton = {
                 Button(onClick = { showDatePicker = false }) {
@@ -74,66 +84,80 @@ fun AddTransactionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.add_new_transaction)) },
+        shape = RoundedCornerShape(16.dp), // Rounded corners for the dialog
+        title = {
+            Text(
+                stringResource(R.string.add_new_transaction),
+                textAlign = TextAlign.Center, // Center title
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Increased spacing
             ) {
-                // --- Transaction Type ---
-                Text(stringResource(R.string.transaction_type), style = MaterialTheme.typography.labelMedium)
+                // --- Transaction Type Selection ---
+                Text(stringResource(R.string.transaction_type), style = MaterialTheme.typography.labelLarge)
+                // Using Filter Chips for a toggle-like feel
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TransactionType.entries.forEach { type ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { selectedType = type }
-                        ) {
-                            RadioButton(
-                                selected = selectedType == type,
-                                onClick = { selectedType = type }
+                        FilterChip(
+                            selected = selectedType == type,
+                            onClick = { selectedType = type },
+                            label = { Text(type.name) }, // Consider using stringResource if needed
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp), // Slightly rounded chips
+                            border = BorderStroke(
+                                1.dp,
+                                if (selectedType == type) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            ),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Text(text = type.name) // Consider using stringResource if you translate enum names
+                        )
+                    }
+                }
+
+                // --- Category Selection (ExposedDropdownMenuBox) ---
+                ExposedDropdownMenuBox(
+                    expanded = showCategoryDropdown,
+                    onExpandedChange = { showCategoryDropdown = !showCategoryDropdown },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory.name, // Display selected category name
+                        onValueChange = {}, // Not directly changeable
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.select_category)) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoryDropdown)
+                        },
+                        modifier = Modifier
+                            .menuAnchor() // Important for ExposedDropdownMenuBox
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = showCategoryDropdown,
+                        onDismissRequest = { showCategoryDropdown = false }
+                    ) {
+                        availableCategories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = {
+                                    selectedCategory = category
+                                    showCategoryDropdown = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-
-                // --- Category Selection ---
-                OutlinedTextField( // Use OutlinedTextField for dropdown appearance
-                    value = selectedCategory.name, // Display selected category
-                    onValueChange = { }, // Value changes via dropdown
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.select_category)) },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = stringResource(R.string.open_category_dropdown),
-                            Modifier.clickable { showCategoryDropdown = true }
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                    // .clickable { showCategoryDropdown = true } // Make whole field clickable too
-                )
-
-                DropdownMenu(
-                    expanded = showCategoryDropdown,
-                    onDismissRequest = { showCategoryDropdown = false }
-                    // Consider using ExposedDropdownMenuBox for better integration with OutlinedTextField
-                ) {
-                    Category.entries.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name) },
-                            onClick = {
-                                selectedCategory = category
-                                showCategoryDropdown = false
-                            }
-                        )
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
 
                 // --- Date Selection ---
                 OutlinedTextField(
@@ -148,18 +172,16 @@ fun AddTransactionDialog(
                             Modifier.clickable { showDatePicker = true }
                         )
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .clickable { showDatePicker = true }
                 )
-                Spacer(Modifier.height(8.dp))
 
                 // --- Amount Input ---
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
-                        // Allow only digits and a single decimal point
                         val filtered = it.filter { char -> char.isDigit() || char == '.' }
-                        // Ensure only one decimal point
                         if (filtered.count { it == '.' } <= 1) {
                             amount = filtered
                         }
@@ -169,8 +191,8 @@ fun AddTransactionDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage != null,
-                    placeholder = { Text("0.00") } // Placeholder instead of prefix
-                    // prefix = { Text("Rp. ") } // Basic currency prefix - REMOVED
+                    placeholder = { Text("0.00") },
+                    singleLine = true
                 )
 
                 errorMessage?.let {
@@ -189,25 +211,26 @@ fun AddTransactionDialog(
                     val amountValue = amount.toDoubleOrNull()
                     if (amountValue != null && amountValue > 0) {
                         viewModel.addTransaction(
-                            Transaction( // ID is generated by Room (default 0 is fine)
+                            Transaction( // ID is generated by Room
                                 type = selectedType,
-                                category = selectedCategory,
+                                category = selectedCategory, // Use the selected category
                                 amount = amountValue,
-                                date = selectedDate // Save selected LocalDate
+                                date = selectedDate
                             )
                         )
                         onDismiss()
                     } else {
-                        // Show error if amount is invalid
-                        errorMessage = "Please enter a valid positive amount."
+                        errorMessage = context.getString(R.string.error_invalid_amount)
                     }
-                }
+                },
+                // Optional: Add icon to save button
+                // icon = { Icon(Icons.Default.Save, contentDescription = null) }
             ) {
                 Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) { // Use TextButton for less emphasis
                 Text(stringResource(R.string.cancel))
             }
         }

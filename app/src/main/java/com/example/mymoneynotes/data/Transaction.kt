@@ -8,7 +8,36 @@ import java.time.LocalDate
 enum class TransactionType { INCOME, EXPENSE }
 
 enum class Category {
-    FOOD, TRANSPORT, SHOPPING, SALARY, BILLS, ENTERTAINMENT, OTHER
+    // Expenses
+    FOOD, TRANSPORT, SHOPPING, BILLS, ENTERTAINMENT, HEALTH, EDUCATION, GIFTS,
+    // Income
+    SALARY, BUSINESS, INVESTMENT, FREELANCE,
+    // Common
+    OTHER;
+
+    companion object {
+        val expenseCategories = listOf(
+            FOOD, TRANSPORT, SHOPPING, BILLS, ENTERTAINMENT, HEALTH, EDUCATION, GIFTS, OTHER
+        )
+        val incomeCategories = listOf(
+            SALARY, BUSINESS, INVESTMENT, FREELANCE, OTHER
+        )
+
+        fun getCategoriesForType(type: TransactionType): List<Category> {
+            return when (type) {
+                TransactionType.INCOME -> incomeCategories
+                TransactionType.EXPENSE -> expenseCategories
+            }
+        }
+
+        // Get default category for a type
+        fun getDefaultCategory(type: TransactionType): Category {
+            return when (type) {
+                TransactionType.INCOME -> SALARY // Default income category
+                TransactionType.EXPENSE -> FOOD   // Default expense category
+            }
+        }
+    }
 }
 
 @Entity(tableName = "transactions")

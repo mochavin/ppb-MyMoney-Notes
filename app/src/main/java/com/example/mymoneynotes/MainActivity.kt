@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -23,7 +22,7 @@ import com.example.mymoneynotes.data.TransactionRepository
 import com.example.mymoneynotes.navigation.BottomNavItem
 import com.example.mymoneynotes.navigation.MainBottomNavigation
 import com.example.mymoneynotes.navigation.mainGraph
-import com.example.mymoneynotes.ui.components.AddTransactionDialog
+import com.example.mymoneynotes.ui.theme.components.AddTransactionDialog
 import com.example.mymoneynotes.ui.theme.MyMoneyNotesTheme
 import com.example.mymoneynotes.ui.theme.components.EditTransactionDialog
 import com.example.mymoneynotes.viewmodel.TransactionViewModel
