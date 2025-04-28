@@ -20,8 +20,6 @@ import com.example.mymoneynotes.R
 import com.example.mymoneynotes.data.Transaction
 import com.example.mymoneynotes.data.TransactionType
 import java.text.NumberFormat
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Locale
 
 @Composable
@@ -35,8 +33,6 @@ fun TransactionItem(
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("id", "ID")) }
     currencyFormatter.maximumFractionDigits = 0
     currencyFormatter.minimumFractionDigits = 0
-
-    val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT) }
 
 
     val amountColor = remember(transaction.type) {
@@ -62,7 +58,7 @@ fun TransactionItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -79,14 +75,6 @@ fun TransactionItem(
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
-                )
-
-
-                Text(
-                    text = dateFormatter.format(transaction.date),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp)
                 )
 
 

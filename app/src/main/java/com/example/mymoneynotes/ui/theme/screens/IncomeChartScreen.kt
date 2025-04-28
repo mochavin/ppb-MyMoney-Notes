@@ -1,12 +1,14 @@
 package com.example.mymoneynotes.ui.theme.screens
 
-import android.graphics.Color
+// Keep android.graphics imports if needed
 import android.graphics.Typeface
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Addchart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,48 +22,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mymoneynotes.R
+import com.example.mymoneynotes.utils.formatRupiah
+import com.example.mymoneynotes.utils.LabelAndAmountValueFormatter
 import com.example.mymoneynotes.viewmodel.TransactionViewModel
 // MPAndroidChart Imports
-import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.charts.PieChart as MPPieChart // Alias
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-import com.github.mikephil.charting.formatter.PercentFormatter
-import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.animation.Easing
-import java.text.NumberFormat
-import java.util.Locale
-
-// Reusable helper function for Rupiah formatting (could be moved to a common utils file)
-private fun formatRupiahIncome(amount: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-    formatter.maximumFractionDigits = 0
-    formatter.minimumFractionDigits = 0
-    return formatter.format(amount)
-}
 
 @Composable
 fun IncomeChartScreen(viewModel: TransactionViewModel) {
-    val incomeSummary by viewModel.incomeSummary.collectAsStateWithLifecycle() // Use incomeSummary
+    val incomeSummary by viewModel.incomeSummary.collectAsStateWithLifecycle()
     val surfaceColor = MaterialTheme.colorScheme.surface
     val backgroundColor = MaterialTheme.colorScheme.background
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val labelAndAmountFormatter = remember { LabelAndAmountValueFormatter() }
 
-    // Income-focused color palette (Greens, Blues, Teals etc.)
+    // Income-focused color palette (Greens, Blues, etc.)
     val chartColors = remember {
         listOf(
-            0xFF4CAF50.toInt(), // Green
-            0xFF8BC34A.toInt(), // Light Green
-            0xFF009688.toInt(), // Teal
-            0xFF03A9F4.toInt(), // Light Blue
-            0xFF2196F3.toInt(), // Blue
-            0xFF3F51B5.toInt(), // Indigo
-            0xFF00BCD4.toInt(), // Cyan
-            0xFFCDDC39.toInt(), // Lime
-            0xFFFFC107.toInt(), // Amber
-            0xFF673AB7.toInt()  // Deep Purple
-        ).shuffled() // Shuffle for variety
+            0xFF4CAF50, 0xFF8BC34A, 0xFF009688, 0xFF03A9F4, 0xFF2196F3,
+            0xFF3F51B5, 0xFF00BCD4, 0xFFCDDC39, 0xFFFFC107, 0xFF673AB7 // Example income colors
+        ).map { it.toInt() }.shuffled()
     }
 
     Column(
@@ -72,7 +58,7 @@ fun IncomeChartScreen(viewModel: TransactionViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            stringResource(R.string.chart_screen_income_title), // Title for Income Chart
+            stringResource(R.string.chart_screen_income_title),
             style = MaterialTheme.typography.headlineMedium,
             color = onSurfaceColor,
             textAlign = TextAlign.Center,
@@ -90,27 +76,37 @@ fun IncomeChartScreen(viewModel: TransactionViewModel) {
             colors = CardDefaults.cardColors(containerColor = surfaceColor)
         ) {
             if (incomeSummary.isEmpty()) {
-                // Empty state specific to income
+                // Enhanced Empty state specific to income
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Addchart,
+                            contentDescription = stringResource(R.string.no_income_data_for_chart),
+                            modifier = Modifier.size(64.dp),
+                            tint = onSurfaceVariantColor.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             stringResource(R.string.no_income_data_for_chart),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = onSurfaceVariantColor
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             stringResource(R.string.add_income_to_see_chart),
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            color = onSurfaceVariantColor.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -123,133 +119,136 @@ fun IncomeChartScreen(viewModel: TransactionViewModel) {
                 ) {
                     Text(
                         stringResource(R.string.income_breakdown),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        style = MaterialTheme.typography.titleLarge,
+                        color = onSurfaceColor,
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
 
                     // PieChart using AndroidView
                     AndroidView(
                         factory = { context ->
-                            PieChart(context).apply {
+                            MPPieChart(context).apply {
                                 layoutParams = LinearLayout.LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT,
                                     ViewGroup.LayoutParams.MATCH_PARENT
                                 )
                                 description.isEnabled = false
-                                setExtraOffsets(20f, 20f, 20f, 20f)
+                                setExtraOffsets(5f, 10f, 5f, 5f)
+                                isRotationEnabled = true
+                                isHighlightPerTapEnabled = true
+                                animateY(1000, Easing.EaseOutCubic)
+
                                 isDrawHoleEnabled = true
-                                holeRadius = 58f
-                                transparentCircleRadius = 61f
+                                holeRadius = 55f
+                                transparentCircleRadius = 58f
                                 setHoleColor(surfaceColor.toArgb())
                                 setTransparentCircleColor(surfaceColor.toArgb())
-                                setTransparentCircleAlpha(50)
-                                setCenterText(context.getString(R.string.income_center_text)) // Center text for income
-                                setCenterTextSize(18f)
-                                setCenterTextTypeface(Typeface.DEFAULT_BOLD)
-                                setCenterTextColor(onSurfaceColor.toArgb())
-                                setUsePercentValues(true)
-                                setEntryLabelColor(Color.BLACK) // Contrasting label color
-                                setEntryLabelTextSize(11f)
-                                setEntryLabelTypeface(Typeface.DEFAULT)
+                                setTransparentCircleAlpha(80)
+
+                                centerText = context.getString(R.string.income_center_text)
+                                setCenterTextSize(16f)
+                                setCenterTextTypeface(Typeface.SANS_SERIF)
+                                setCenterTextColor(onSurfaceVariantColor.toArgb())
+
+                                // --- IMPORTANT: Disable default entry labels ---
+                                setDrawEntryLabels(false)
+                                // ----------------------------------------------
+
+                                // Configure value settings
+                                // setUsePercentValues(false)
+
                                 legend.apply {
                                     verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
                                     horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
                                     orientation = Legend.LegendOrientation.HORIZONTAL
                                     setDrawInside(false)
-                                    xEntrySpace = 10f
-                                    yEntrySpace = 0f
-                                    yOffset = 10f
-                                    textSize = 12f
-                                    textColor = onSurfaceColor.toArgb()
                                     form = Legend.LegendForm.CIRCLE
+                                    formSize = 9f
+                                    textSize = 12f
+                                    textColor = onSurfaceVariantColor.toArgb()
+                                    xEntrySpace = 8f
+                                    yEntrySpace = 4f
+                                    yOffset = 10f
                                     isWordWrapEnabled = true
                                 }
-                                // Animate only once during factory setup
-                                // animateXY(1400, 1400, Easing.EaseInOutQuad) // <-- Moved to update or removed
-
-                                isRotationEnabled = true
-                                isHighlightPerTapEnabled = true
-                                setMinAngleForSlices(15f)
+                                setMinAngleForSlices(10f)
                             }
                         },
                         update = { chart ->
-                            // Update chart with income data
+                            // --- Prepare entries: value=amount, label=category name ---
                             val entries = incomeSummary.map { (category, amount) ->
-                                PieEntry(amount.toFloat(), category.name)
+                                PieEntry(amount.toFloat(), category.name) // Label is just the name
                             }
+                            // ---------------------------------------------------------
 
                             val dataSet = PieDataSet(entries, "").apply {
-                                colors = chartColors // Use income-specific colors
-                                valueTextColor = onSurfaceColor.toArgb()
-                                valueTextSize = 10f
-                                sliceSpace = 2f
-                                valueLineColor = onSurfaceColor.toArgb()
+                                sliceSpace = 2.5f
+                                colors = chartColors // Use income colors
+                                selectionShift = 6f
+
+                                // --- Configure how VALUES are drawn ---
+                                setDrawValues(true) // IMPORTANT: Enable drawing values
+                                valueLinePart1OffsetPercentage = 80f
                                 valueLinePart1Length = 0.4f
-                                valueLinePart2Length = 0.4f
+                                valueLinePart2Length = 0.5f
+                                valueLineColor = onSurfaceVariantColor.copy(alpha = 0.7f).toArgb()
                                 yValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
                                 xValuePosition = PieDataSet.ValuePosition.OUTSIDE_SLICE
-                                valueLinePart1OffsetPercentage = 80f
-                                selectionShift = 8f
+
+                                setValueTextColors(listOf(onSurfaceVariantColor.toArgb()))
+                                valueTextSize = 10f
+                                valueTypeface = Typeface.SANS_SERIF
+                                // ------------------------------------
                             }
 
                             val pieData = PieData(dataSet).apply {
-                                setValueFormatter(PercentFormatter(chart))
-                                setValueTextSize(10f)
-                                setValueTextColor(onSurfaceColor.toArgb())
+                                // --- Apply the custom formatter to show amounts ---
+                                setValueFormatter(labelAndAmountFormatter)
+                                // -------------------------------------------------
                             }
 
-                            // ---- MODIFICATION START ----
-                            chart.clear() // Clear previous data/renderers
-                            chart.post { // Post the update to the view's queue
-                                chart.data = pieData
-                                chart.highlightValues(null)
-                                // Optionally re-apply animation here if needed on updates
-                                chart.animateXY(1000, 1000, Easing.EaseInOutQuad) // Shorter animation on update
-                                chart.invalidate() // Request redraw AFTER setting data within post
-                            }
-                            // ---- MODIFICATION END ----
+                            // Update chart data
+                            chart.data = pieData
+                            // chart.setUsePercentValues(false)
+                            chart.highlightValues(null)
+                            chart.invalidate()
+                            chart.animateY(800, Easing.EaseOutCubic)
                         },
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
+                            .aspectRatio(1f) // Make it square
+                            .padding(vertical = 8.dp)
                     )
 
                     // Summary statistics for income
                     val totalAmount = incomeSummary.values.sum()
                     val topCategory = incomeSummary.maxByOrNull { it.value }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         StatCard(
-                            title = stringResource(R.string.total_income_stat), // Stat title for income
-                            value = formatRupiahIncome(totalAmount), // Format as Rupiah
+                            title = stringResource(R.string.total_income_stat),
+                            value = formatRupiah(totalAmount),
                             modifier = Modifier.weight(1f)
                         )
 
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        topCategory?.let {
+                        topCategory?.let { (category, amount) ->
                             StatCard(
-                                title = stringResource(R.string.top_income_source_stat), // Stat title for top income source
-                                value = "${it.key.name}\n${formatRupiahIncome(it.value)}", // Format as Rupiah
+                                title = stringResource(R.string.top_income_source_stat),
+                                value = category.name,
+                                secondaryValue = formatRupiah(amount),
                                 modifier = Modifier.weight(1f)
                             )
-                        } ?: Box(modifier = Modifier.weight(1f)) // Placeholder if no top category
+                        } ?: Box(modifier = Modifier.weight(1f)) // Placeholder
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
-
-// StatCard Composable is reused from ChartScreen.kt (or could be moved to a common components file)
-// Ensure StatCard composable is available in this scope or imported if moved.
-
-// Helper extension function for color alpha (if not already defined/imported)
-// fun Int.copy(alpha: Float): Int { ... } // Defined in ChartScreen.kt
